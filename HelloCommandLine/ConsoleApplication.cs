@@ -15,11 +15,26 @@ namespace Triamec.Tam.Samples {
         TamStation[] _stations;
         TamAxis[] _axes;
         TamAxis _axis;
-        bool _offline;
+        
         int numberInput;
         string stringInput;
         float _velocityMaximum;
         string _unit;
+
+        /// <summary>
+        /// The distance to move when send a moving command.
+        /// </summary>
+        // CAUTION!
+        // The unit of this constant depends on the PositionUnit parameter provided with the TAM configuration.
+        // Additionally, the encoder must be correctly configured.
+        // Consider any limit stops.
+        double Distance = 0.5 * Math.PI;
+
+        /// <summary>
+        /// Whether to use a (rather simplified) simulation of the axis.
+        /// </summary>
+        bool _offline = true;
+        
 
         public void StartUp() {
 
@@ -103,6 +118,8 @@ namespace Triamec.Tam.Samples {
             // and cast it to the RLID-specific register layout.
             var register = (Axis)_axis.Register;
 
+
+
             // Read and cache the original velocity maximum value,
             // which was applied from the configuration file.
             _velocityMaximum = register.Parameters.PathPlanner.VelocityMaximum.Read();
@@ -110,6 +127,19 @@ namespace Triamec.Tam.Samples {
             // Cache the position unit.
             _unit = register.Parameters.PositionController.PositionUnit.Read().ToString();
 
+            if(!_offline) {
+                // User needs to define a distance to move when sending a moving command.
+                Console.WriteLine("Please enter a distance to move the axis, when sending a corresponding command.");
+                Console.WriteLine("The value must be in the unit of the axis, which is: " + _unit);
+                while(true) {
+                    stringInput = Console.ReadLine()?.Trim();
+                    if (double.TryParse(stringInput, out Distance)) {
+                        break;
+                    } else {
+                        Console.WriteLine("Invalid input. Please enter a number (double).");
+                    }
+                }
+            }
         }
 
         /// <summary>
