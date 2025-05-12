@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Triamec.Tam.Configuration;
+using Triamec.TriaLink;
+using Triamec.TriaLink.Adapter;
+
 // Rlid19 represents the register layout of drives of the current generation. A previous generation drive has layout 4.
 using Axis = Triamec.Tam.Rlid19.Axis;
 
@@ -15,7 +19,7 @@ namespace Triamec.Tam.Samples {
         TamStation[] _stations;
         TamAxis[] _axes;
         TamAxis _axis;
-        
+
         int numberInput;
         string stringInput;
         float _velocityMaximum;
@@ -34,7 +38,12 @@ namespace Triamec.Tam.Samples {
         /// Whether to use a (rather simplified) simulation of the axis.
         /// </summary>
         bool _offline = true;
-        
+
+        /// <summary>
+        /// The configuration file to seed the simulation.
+        /// </summary>
+        const string OfflineConfigurationPath = "HelloWorld.TAMcfg";
+
 
         public void StartUp() {
 
@@ -50,11 +59,23 @@ namespace Triamec.Tam.Samples {
             numberInput = CheckNumberInput(1, "Invalid input. Please enter 0 or 1.");
 
             // The Tam System is added.
-            if (numberInput == 0 ) {
+            if (numberInput == 0) {
                 _offline = true;
                 Console.WriteLine("Simulation is being created. Please wait... \n ");
 
-                // TODO: Add Simulation
+
+                string executablePath = AppDomain.CurrentDomain.BaseDirectory;
+                // TODO -> Hier ist Pfad bin/Debug/net8.0 => kann ich die Datei einfach dort reinkopieren?
+                using (var deserializer = new Deserializer()) {
+
+                    // Load and add a simulated TAM system as defined in the .TAMcfg file.
+                    deserializer.Load(Path.Combine(executablePath, OfflineConfigurationPath));
+                    var adapters = CreateSimulatedTriaLinkAdapters(deserializer.Configuration).First();
+                    _system = _topology.ConnectTo(adapters.Key, adapters.ToArray());
+
+                    // Boot the Tria-Link so that it learns about connected stations.
+                    _system.Identify();
+                }
 
             } else {
                 _offline = false;
@@ -76,7 +97,7 @@ namespace Triamec.Tam.Samples {
             _stations = _system.AsDepthFirst<TamStation>().ToArray();
 
             // More than one station (drive) found. User needs to decide which one to use.
-            if (_stations.Length>1) {
+            if (_stations.Length > 1) {
 
                 // Print all found stations (drives)
                 Console.WriteLine("More than one station was found. Please select one by entering the corresponding number:");
@@ -127,11 +148,11 @@ namespace Triamec.Tam.Samples {
             // Cache the position unit.
             _unit = register.Parameters.PositionController.PositionUnit.Read().ToString();
 
-            if(!_offline) {
+            if (!_offline) {
                 // User needs to define a distance to move when sending a moving command.
                 Console.WriteLine("Please enter a distance to move the axis, when sending a corresponding command.");
                 Console.WriteLine("The value must be in the unit of the axis, which is: " + _unit);
-                while(true) {
+                while (true) {
                     stringInput = Console.ReadLine()?.Trim();
                     if (double.TryParse(stringInput, out Distance)) {
                         break;
@@ -161,6 +182,19 @@ namespace Triamec.Tam.Samples {
             } while (true);
 
         }
-         
+
+        /// <summary>
+        /// Creates simulated Tria-Link adapters from a specified configuration.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <returns>The newly created simulated Tria-Link adapters.</returns>
+        static IEnumerable<IGrouping<Uri, ITriaLinkAdapter>> CreateSimulatedTriaLinkAdapters(
+    TamTopologyConfiguration configuration) =>
+
+    // This call must be in this extra method such that the Tam.Simulation library is only loaded
+    // when simulating. This happens when this method is jitted because the SimulationFactory is the first
+    // symbol during runtime originating from the Tam.Simulation library.
+    SimulationFactory.FromConfiguration(configuration, null);
+
     }
 }
