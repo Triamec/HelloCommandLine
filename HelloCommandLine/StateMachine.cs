@@ -210,6 +210,11 @@ namespace Triamec.Tam.Samples {
 
             // Cache the position unit.
             _unit = register.Parameters.PositionController.PositionUnit.Read().ToString();
+            if(_unit == "unspecified") {
+                Console.WriteLine("\nThe unit of the axis is unspecified. Please check the configurations or start with a simulation.");
+                _state = State.AddTopology;
+                return;
+            }
 
             // Read and cache the original velocity maximum value,
             // which was applied from the configuration file.
