@@ -13,38 +13,29 @@ No hardware is needed when running the application as **Offline**.
 
 To command a real axis, you need a *Triamec* drive with a motor and encoder connected and configured with a stable position controller. Connect the drive by *Tria-Link*, *USB* or *Ethernet*.
 
-## Konzept
+## Software Prerequisites
 
-### 1) Abfragen, ob ein Motor angeschlossen (Connected) oder nicht (offline)
-falls Connected: Version -> Nach AxisName abfragen  |  Distanz-Konstante abfragen
+This project is made and built with [Microsoft Visual Studio](https://visualstudio.microsoft.com/en/).
 
-### 2) StartUp Funktion => Wird automatisch ausgeführt 
-- offline: eine vorgefertigte Konfiguration (HelloWorld.TAMcfg) kopieren verwenden
-- Connected: mit FirstOrDefault (aber richtigem AxisName) verbinden
-- genau gleich wie StartUp Funktion des HelloWorld (ohne Timer?)
+In addition you need [TAM Software](https://www.triamec.com/en/tam-software-support.html) installation.
 
 
-### 3) Thread starten, der z.B. alle 5 Sekunden, die aktuelle Position auf die Konsole ausschreibt??
-=> Wollen wir das überhaupt? oder soll einfach nach jeder Bewegung & Enable die Position ausgegeben werden
+## Run the *Hello World!* Application
 
-### 4) Konsole wartet mit ReadLine() auf Befehlseingabe in immerwiederholender Schleife 
-Folgende Befehle gibt es: 
-- Enable, Disable, Left, Right, Speed [0-100], exit
+For the **Offline** mode, simply clone the repository, open the solution and hit run.
 
-While(True)
-{
-if (disabled): -> Erklärungstext mit Enable, Speed und Exit
-if (enabled): -> Erklärungstext mit allen Befehlen
-switch Case 
-}
+**Connected** mode:
 
+1. Make sure the *TAM System Explorer* is not connected to the drive, or simply close it.
+2. The Hardware needs to be configured correctly and needs to be connected.
+3. Open the solution and hit run.
 
-=> eingegebnerer Input wird mit Switch-Case überprüft und dann die entsprechenden Befehle ausgeführt: 
-- Enable => gemäss EnableAxis von HelloWorld
-- Disable => gemäss DisableAxis von HelloWorld, überprüfen ob enabled
-- Left => MoveAxis(-1) gemäss HelloWorld, überprüfen ob enabled
-- Right => MoveAxis(+1) gemäss HelloWorld, überprüfen ob enabled
-- Speed => _velocityMaximum (gemäss HelloWorld) wird geändert
-- Exit  => gemäss OnFormClosed von HelloWorld => DisableAxis() und dann aus Schleife austreten (ist es wichtig das DisableAxis funktioniert?)
+## Operate the *HelloCommandLine* Application
 
-### => Exceptions werden einfach nur auf Konsole ausgegeben und nicht geloggt!
+This application is a command-line tool that guides the user through the setup and control of a TAM (Triamec Automation Module) system using a state machine. The user can choose between running the application in simulation mode or with connected hardware. The application walks the user through the following steps:
+1.	Topology Setup: Initializes the system topology, either in simulation or with real hardware.
+2.	Station Selection: Detects all available stations and prompts the user to select one.
+3.	Axis Selection: Lists all axes of the selected station and lets the user choose an axis to control.
+4.	Parameter Setup: Reads axis parameters and, if not in simulation, asks the user to enter a movement distance.
+5.	Axis Control: Allows the user to enable/disable the axis, change speed, or move the axis left or right by the specified distance.
+All user interactions and state transitions are managed by a state machine, ensuring a clear and guided workflow for configuring and controlling the TAM system.
