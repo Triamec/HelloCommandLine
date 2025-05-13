@@ -12,4 +12,10 @@
     <PackageReference Include="Triamec.Tam.TriaLink" Version="7.23.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="HelloWorld.TAMcfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
