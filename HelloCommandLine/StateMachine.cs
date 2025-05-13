@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Triamec.Tam.Configuration;
 using Triamec.TriaLink;
 using Triamec.TriaLink.Adapter;
-using Triamec.Tam.Registers;
 
 // Rlid19 represents the register layout of drives of the current generation. A previous generation drive has layout 4.
 using Axis = Triamec.Tam.Rlid19.Axis;
@@ -15,58 +14,54 @@ using Axis = Triamec.Tam.Rlid19.Axis;
 namespace Triamec.Tam.Samples {
 
     internal class StateMachine : IDisposable {
+
+        private State _state = State.AddTopology;
+        private readonly Dictionary<State, Action> _stateActions;
+
         TamTopology? _topology;
         TamSystem? _system;
         TamStation? _station;
         TamAxis? _axis;
 
-        private State _state = State.AddTopology;
-
         bool _isSimulation;
         float _velocityMaximum;
         string? _unit;
         float _speed = 50f; // Default speed value for the axis movement
-
-        /// <summary>
-        /// The distance to move when send a moving command.
-        /// </summary>
-        // CAUTION!
-        // The unit of this constant depends on the PositionUnit parameter provided with the TAM configuration.
-        // Additionally, the encoder must be correctly configured.
-        // Consider any limit stops.
-        double _distance = 0.5 * Math.PI;
+        double _distance = 0.5 * Math.PI; /// The distance to move when send a moving command.
 
         /// <summary>
         /// The configuration file to seed the simulation.
         /// </summary>
         const string _offlineConfigurationPath = "HelloWorld.TAMcfg";
 
+        public StateMachine() {
+            // Initialize the state actions dictionary with the corresponding methods for each state.
+            _stateActions = new Dictionary<State, Action> {
+                { State.AddTopology, ExecuteState_AddTopology },
+                { State.ChoseStation, ExecuteState_ChoseStation },
+                { State.ChoseAxis, ExecuteState_ChoseAxis },
+                { State.SetDistance, ExecuteState_SetDistance },
+                { State.AxisDisabled, ExecuteState_AxisDisabled },
+                { State.AxisEnabled, ExecuteState_AxisEnabled }
+            };
+        }
 
+        /// <summary>
+        /// Main loop of the state machine. Continuously executes the action associated with the current state
+        /// by invoking the corresponding method from the <c>_stateActions</c> dictionary.
+        /// If an unknown state is encountered, logs a message and resets the state machine to the initial state.
+        /// </summary>
         public void StateHandler() {
             while (true) {
-                switch (_state) {
-                    case State.AddTopology:
-                        AddTopology();
-                        break;
-                    case State.ChoseStation:
-                        ChoseStation();
-                        break;
-                    case State.ChoseAxis:
-                        ChoseAxis();
-                        break;
-                    case State.SetDistance:
-                        SetDistance();
-                        break;
-                    case State.AxisDisabled:
-                        AxisDisabled();
-                        break;
-                    case State.AxisEnabled:
-                        AxisEnabled();
-                        break;
+                if(_stateActions.TryGetValue(_state, out var action)) {
+                    action();
                 }
-
+                // Restart the state machine if an unknown state is encountered.
+                else {
+                    Console.WriteLine($"State {_state} not found.");
+                    _state = State.AddTopology; 
+                }
             }
-
         }
 
         /// <summary>
@@ -74,7 +69,7 @@ namespace Triamec.Tam.Samples {
         /// Prompts the user to select the mode, sets up the corresponding system.
         /// Advances the state machine to the next state if successful; otherwise, displays an error message.
         /// </summary>
-        private void AddTopology() {
+        private void ExecuteState_AddTopology() {
 
             Dispose();
             _topology = new TamTopology();
@@ -133,7 +128,7 @@ namespace Triamec.Tam.Samples {
         /// Finds all connected stations in the current TAM system and prompts the user to select one if multiple stations are available.
         /// Updates the state machine to <c>ChoseAxis</c> if at least one station is found; otherwise, restarts the topology setup.
         /// </summary>
-        private void ChoseStation() {
+        private void ExecuteState_ChoseStation() {
             TamStation[]? _stations;
 
             // Find all connected stations
@@ -168,7 +163,7 @@ namespace Triamec.Tam.Samples {
         /// Connects to the selected axis, takes control of it, and resets any simulation faults if necessary.
         /// Advances the state machine to <c>SetParameters</c> if an axis is selected; otherwise, restarts the topology setup.
         /// </summary>
-        private void ChoseAxis() {
+        private void ExecuteState_ChoseAxis() {
             TamAxis[]? _axes;
 
             // Find all axes of the selected station (drive)
@@ -207,7 +202,7 @@ namespace Triamec.Tam.Samples {
         /// Reads and caches axis parameters such as maximum velocity and position unit from the hardware configuration.
         /// If not in simulation mode, prompts the user to enter a movement distance, validates the input, and updates the internal distance value.
         /// </summary>
-        private void SetDistance() {
+        private void ExecuteState_SetDistance() {
 
             // Get the register layout of the axis
             // and cast it to the RLID-specific register layout.
@@ -239,7 +234,12 @@ namespace Triamec.Tam.Samples {
             _state = State.AxisDisabled;
         }
 
-        private void AxisDisabled() {
+        /// <summary>
+        /// Handles user interaction when the axis is currently disabled.
+        /// Displays available commands to the user (restart system, enable axis, or change speed),
+        /// reads and validates the user's input, and executes the selected command.
+        /// </summary>
+        private void ExecuteState_AxisDisabled() {
             Console.WriteLine("\nPlease enter a command: ");
             Console.WriteLine("(0): RestartSystem");
             Console.WriteLine("(1): Enable Axis (recommended)");
@@ -249,7 +249,12 @@ namespace Triamec.Tam.Samples {
             ExecuteCommand(command, true);
         }
 
-        private void AxisEnabled() {
+        /// <summary>
+        /// Handles user interaction when the axis is currently enabled.
+        /// Displays available commands to the user (restart system, disable axis, change speed, move left, move right),
+        /// reads and validates the user's input, and executes the selected command.
+        /// </summary>
+        private void ExecuteState_AxisEnabled() {
             Console.WriteLine("\nPlease enter a command: ");
             Console.WriteLine("(0): RestartSystem");
             Console.WriteLine("(1): Disable Axis");
@@ -261,6 +266,15 @@ namespace Triamec.Tam.Samples {
             ExecuteCommand(command, false);
         }
 
+        /// <summary>
+        /// Executes the specified command for the axis, taking into account whether the axis is currently disabled or enabled.
+        /// The <paramref name="command"/> parameter determines the action to perform (restart system, enable/disable axis, change speed, move left, move right).
+        /// The <paramref name="axisIsDisabled"/> parameter indicates if the axis is currently disabled (true) or enabled (false),
+        /// and controls whether the axis should be enabled or disabled when the corresponding command is selected.
+        /// Updates the state machine accordingly after executing the command.
+        /// </summary>
+        /// <param name="command">The command to execute.</param>
+        /// <param name="axisIsDisabled">Indicates whether the axis is currently disabled (true) or enabled (false).</param>
         private void ExecuteCommand(Commands command, bool axisIsDisabled) {
 
             switch (command) {
@@ -295,6 +309,8 @@ namespace Triamec.Tam.Samples {
                     break;
             }
         }
+
+        #region commandsToAxis
 
         private void EnableAxis() {
             if (_axis.Drive.Station.Link.Adapter.IsSimulated) {
@@ -337,6 +353,7 @@ namespace Triamec.Tam.Samples {
                 }
             } while (true);
         }
+
         private void ShowPosition() {
             var register = (Axis)_axis.Register;
 
@@ -356,6 +373,8 @@ namespace Triamec.Tam.Samples {
             Console.WriteLine($"\nNew position: {position} {_unit}");
 
         }
+
+        #endregion commandsToAxis
 
         /// <summary>
         /// Validates user input to ensure it is a number and within the specified range.
