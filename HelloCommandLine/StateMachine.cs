@@ -53,13 +53,13 @@ namespace Triamec.Tam.Samples {
         /// </summary>
         public void StateHandler() {
             while (true) {
-                if(_stateActions.TryGetValue(_state, out var action)) {
+                if (_stateActions.TryGetValue(_state, out var action)) {
                     action();
                 }
                 // Restart the state machine if an unknown state is encountered.
                 else {
                     Console.WriteLine($"State {_state} not found.");
-                    _state = State.AddTopology; 
+                    _state = State.AddTopology;
                 }
             }
         }
@@ -149,8 +149,7 @@ namespace Triamec.Tam.Samples {
                 // Check if input is valid and overwrite _stations[0] with the selected station
                 stationIndex = GetAndCheckNumberInput(_stations.Length, "Invalid input. Please enter a number of a station.");
                 _station = _stations[stationIndex];
-            } 
-            else if (_stations.Length == 1) _station = _stations[0];
+            } else if (_stations.Length == 1) _station = _stations[0];
 
             if (_station != null) { _state = State.ChoseAxis; } else {
                 _state = State.AddTopology;
@@ -210,7 +209,7 @@ namespace Triamec.Tam.Samples {
 
             // Cache the position unit.
             _unit = register.Parameters.PositionController.PositionUnit.Read().ToString();
-            if(_unit == "unspecified") {
+            if (_unit == "unspecified") {
                 Console.WriteLine("\nThe unit of the axis is unspecified. Please check the configurations or start with a simulation.");
                 _state = State.AddTopology;
                 return;
