@@ -9,9 +9,12 @@ namespace Triamec.Tam.Samples {
         /// <param name="args"></param>
 
         static void Main(string[] args) {
-            using ConsoleApplication app = new ConsoleApplication();
-            app.StartUp();
-            app.CommandLoop();
+            //using ConsoleApplication app = new ConsoleApplication();
+            //app.StartUp();
+            //app.CommandLoop();
+
+            using StateMachine app = new StateMachine();
+            app.StateHandler();
         }
 
 
