@@ -205,14 +205,17 @@ namespace Triamec.Tam.Samples {
 
             // Get the register layout of the axis
             // and cast it to the RLID-specific register layout.
+            if (_axis == null) {
+                Console.WriteLine("\nNo axis found. System is restarting...\n");
+                _state = State.AddTopology;
+                return;
+            }
             var register = (Axis)_axis.Register;
 
             // Cache the position unit.
             _unit = register.Parameters.PositionController.PositionUnit.Read().ToString();
             if (_unit == "unspecified") {
-                Console.WriteLine("\nThe unit of the axis is unspecified. Please check the configurations or start with a simulation.");
-                _state = State.AddTopology;
-                return;
+                Console.WriteLine("\nThe unit of the axis is unspecified. Please check the configurations and restart or start with a simulation.");
             }
 
             // Read and cache the original velocity maximum value,
@@ -317,6 +320,11 @@ namespace Triamec.Tam.Samples {
         #region commandsToAxis
 
         private void EnableAxis() {
+            if (_axis == null) {
+                Console.WriteLine("\nNo axis found. System is restarting...\n");
+                _state = State.AddTopology;
+                return;
+            }
             if (_axis.Drive.Station.Link.Adapter.IsSimulated) {
                 // [LEGACY] Set the drive operational, i.e. switch the power section on
                 _axis.Drive.SwitchOn();
@@ -327,6 +335,11 @@ namespace Triamec.Tam.Samples {
 
         private void DisableAxis() {
             // Disable the axis controller.
+            if (_axis == null) {
+                Console.WriteLine("\nNo axis found. System is restarting...\n");
+                _state = State.AddTopology;
+                return;
+            }
             _axis.Control(AxisControlCommands.Disable);
 
             if (_axis.Drive.Station.Link.Adapter.IsSimulated) {
@@ -340,7 +353,15 @@ namespace Triamec.Tam.Samples {
             // Move a distance with dedicated velocity.
             // If the axis is just moving, it is reprogrammed with this command.
             // Please note that in offline mode, the velocity parameter is ignored.
-            _axis.MoveRelative(Math.Sign(sign) * _distance, _velocityMaximum * _speed * 0.01f);
+            if (_axis == null) {
+                Console.WriteLine("\nNo axis found. System is restarting...\n");
+                _state = State.AddTopology;
+                return;
+            }
+            try { _axis.MoveRelative(Math.Sign(sign) * _distance, _velocityMaximum * _speed * 0.01f); } catch (TamException e) {
+                Console.WriteLine($"\nError: {e.Message}");
+                Console.WriteLine("Please check the configurations and restart or start with a simulation.");
+            }
 
         }
 
@@ -359,12 +380,17 @@ namespace Triamec.Tam.Samples {
         }
 
         private void ShowPosition() {
+            if (_axis == null) {
+                Console.WriteLine("\nNo axis found. System is restarting...\n");
+                _state = State.AddTopology;
+                return;
+            }
             var register = (Axis)_axis.Register;
 
             // Wait until the axis is in standstill.
             while (true) {
 
-                if (register.Signals.General.AxisState.Read() == Registers.AxisState.Standstill) {
+                if ((int)register.Signals.General.AxisState.Read() <= 3) {
                     break;
                 }
             }
