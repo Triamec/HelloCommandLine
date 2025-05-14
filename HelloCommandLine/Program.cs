@@ -1,5 +1,4 @@
-﻿
-using Triamec.Tam;
+﻿// Copyright © 2025 Triamec Motion AG
 
 namespace Triamec.Tam.Samples {
     internal class Program {
@@ -12,8 +11,13 @@ namespace Triamec.Tam.Samples {
 
             using StateMachine app = new StateMachine();
 
-            app.StateHandler();
-
+            try {
+                app.StateHandler();
+            }
+            catch(TamException ex) {
+                Console.WriteLine($"\nAn error occurred: {ex.Message}");
+                Console.WriteLine($"\nPlease check the drive's configurations, close the application and try again or start a simulation.");
+            }
         }
     }
 }
