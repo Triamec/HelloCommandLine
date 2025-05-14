@@ -450,6 +450,18 @@ namespace Triamec.Tam.Samples {
         }
     }
 
+    /// <summary>
+    /// Represents the different states of the application state machine.
+    /// Each state defines a specific step in the workflow for configuring and controlling a TAM system:
+    /// <list type="bullet">
+    /// <item><term>AddTopology</term><description>Initialize the system topology (simulation or hardware).</description></item>
+    /// <item><term>ChoseStation</term><description>Select a station from all detected stations.</description></item>
+    /// <item><term>ChoseAxis</term><description>Select an axis from the chosen station.</description></item>
+    /// <item><term>SetDistance</term><description>Configure movement parameters such as distance.</description></item>
+    /// <item><term>AxisDisabled</term><description>Axis is disabled; user can execute different commands.</description></item>
+    /// <item><term>AxisEnabled</term><description>Axis is enabled; user can execute different commands.</description></item>
+    /// </list>
+    /// </summary>
     public enum State {
         AddTopology,
         ChoseStation,
@@ -459,12 +471,22 @@ namespace Triamec.Tam.Samples {
         AxisEnabled
     }
 
+    /// <summary>
+    /// Represents the available commands that can be executed by the user in the state machine (in State Axis Disabled and Axis Enabled).
+    /// Each command corresponds to a specific action for controlling the TAM system:
+    /// <list type="bullet">
+    /// <item><term>RestartSystem</term><description>Restart the system and return to the initial state.</description></item>
+    /// <item><term>EnableDisableAxis</term><description>Enable or disable the selected axis, depending on its current state.</description></item>
+    /// <item><term>ChangeSpeed</term><description>Change the speed (as a percentage of the maximum) for axis movement.</description></item>
+    /// <item><term>MoveLeft</term><description>Move the axis to the left by the configured distance.</description></item>
+    /// <item><term>MoveRight</term><description>Move the axis to the right by the configured distance.</description></item>
+    /// </list>
+    /// </summary>
     public enum Commands {
         RestartSystem,
         EnableDisableAxis,
         ChangeSpeed,
         MoveLeft,
         MoveRight
-
     }
 }
