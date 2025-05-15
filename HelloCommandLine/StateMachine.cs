@@ -383,17 +383,23 @@ namespace Triamec.Tam.Samples {
         }
 
         private void ShowPosition() {
-            var register = (Axis)_axis.Register;
+            var register = (Axis)_axis!.Register;
+            var timeout = TimeSpan.FromSeconds(10);
+            var start = DateTime.UtcNow;
 
             // Wait until the axis is in standstill.
             while (true) {
                 if ((int)register.Signals.General.AxisState.Read() < 4 || (int)register.Signals.General.AxisState.Read() > 7) {
                     break;
                 }
+                if(DateTime.UtcNow - start > timeout) {
+                    throw new TamException("Timeout while waiting for axis to be at least in standstill to read axisPosition.");
+                }
+                Thread.Sleep(10);
             }
 
             // Wait a bit to ensure that the axis is in standstill.
-            Thread.Sleep(2);
+            Thread.Sleep(10);
 
             // Read the current position of the axis.
             var position = register.Signals.PositionController.MasterPosition.Read();
