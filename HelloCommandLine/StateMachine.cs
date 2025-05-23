@@ -219,6 +219,9 @@ namespace Triamec.Tam.Samples {
             _velocityMaximum = register.Parameters.PathPlanner.VelocityMaximum.Read();
 
             _state = State.AxisDisabled;
+
+            // Prepare for the use of the WaitForSuccess method.
+            _axis.Drive.AddStateObserver(this);
         }
 
         /// <summary>
@@ -362,10 +365,13 @@ namespace Triamec.Tam.Samples {
         }
 
         private void MoveAxis(int sign) {
+
+            TimeSpan timeout = TimeSpan.FromSeconds(10);
             // Move a distance with dedicated velocity.
             // If the axis is just moving, it is reprogrammed with this command.
             // Please note that in offline mode, the velocity parameter is ignored.
-            _axis!.MoveRelative(Math.Sign(sign) * _distance, _velocityMaximum * _speed * 0.01f);
+            // Does not continue, until MoveRelative is terminated => WaitForSuccess
+            _axis!.MoveRelative(Math.Sign(sign) * _distance, _velocityMaximum * _speed * 0.01f).WaitForSuccess(timeout);
         }
 
         private void ChangeSpeed() {
@@ -384,27 +390,11 @@ namespace Triamec.Tam.Samples {
 
         private void ShowPosition() {
             var register = (Axis)_axis!.Register;
-            var timeout = TimeSpan.FromSeconds(10);
             var start = DateTime.UtcNow;
-
-            // Wait until the axis is in standstill.
-            while (true) {
-                if ((int)register.Signals.General.AxisState.Read() < 4 || (int)register.Signals.General.AxisState.Read() > 7) {
-                    break;
-                }
-                if(DateTime.UtcNow - start > timeout) {
-                    throw new TamException("Timeout while waiting for axis to be at least in standstill to read axisPosition.");
-                }
-                Thread.Sleep(10);
-            }
-
-            // Wait a bit to ensure that the axis is in standstill.
-            Thread.Sleep(10);
 
             // Read the current position of the axis.
             var position = register.Signals.PositionController.MasterPosition.Read();
             Console.WriteLine($"\nNew position: {position:F4} {_unit}");
-
         }
 
         #endregion commandsToAxis
