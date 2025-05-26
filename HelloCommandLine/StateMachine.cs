@@ -443,6 +443,7 @@ namespace Triamec.Tam.Samples {
 
             if (_axis != null) {
                 try {
+                    _axis.Drive.RemoveStateObserver(this);
                     DisableAxis();
                 } catch (TamException ex) {
                     Console.WriteLine($"\nAn error occurred while disabling the axis: \n{ex.Message}");
