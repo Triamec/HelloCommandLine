@@ -162,6 +162,7 @@ namespace Triamec.Tam.Samples {
             }
         }
 
+        private bool _observerRegistered = false;
         /// <summary>
         /// Finds all axes of the selected station and prompts the user to select one by number.
         /// Connects to the selected axis, takes control of it, and resets any simulation faults if necessary.        
@@ -221,7 +222,11 @@ namespace Triamec.Tam.Samples {
             _state = State.AxisDisabled;
 
             // Prepare for the use of the WaitForSuccess method.
-            _axis.Drive.AddStateObserver(this);
+            if(_observerRegistered == false) {
+                _axis.Drive.AddStateObserver(this);
+                _observerRegistered = true;
+            }
+
         }
 
         /// <summary>
@@ -434,6 +439,7 @@ namespace Triamec.Tam.Samples {
             // Reset parameters
             _distance = 0.5 * Math.PI;
             _speed = 50f;
+            _observerRegistered = false;
 
             if (_axis != null) {
                 try {
