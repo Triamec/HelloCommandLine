@@ -261,6 +261,7 @@ namespace Triamec.Tam.Samples {
 
             // Get and validate input and distance
             do {
+                ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
                 string? stringInput = Console.ReadLine()?.Trim();
                 if (double.TryParse(stringInput, out _distance)) {
                     break;
@@ -388,6 +389,7 @@ namespace Triamec.Tam.Samples {
             // User can change the percentage of the maximum speed
             Console.WriteLine("\nAt what percentage of the maximum speed should the motor operate? Please enter the desired percentage:");
             do {
+                ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
                 string? stringInput = Console.ReadLine()?.Trim();
                 if (float.TryParse(stringInput, out _speed) && _speed >= 0 && _speed <= 100) {
                     break;
@@ -417,6 +419,7 @@ namespace Triamec.Tam.Samples {
         /// <returns>The valid number entered by the user</returns>
         private int GetAndCheckNumberInput(int maxNumber, string errMessage) { // TODO review ns: Consider using errMessage as an optional parameter with a default value.
             do {
+                ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
                 string? stringInput = Console.ReadLine()?.Trim();
                 if (int.TryParse(stringInput, out int numberInput) && numberInput >= 0 && numberInput <= maxNumber) {
                     return numberInput;
@@ -424,6 +427,10 @@ namespace Triamec.Tam.Samples {
                     Console.WriteLine(errMessage);
                 }
             } while (true);
+        }
+
+        private void ClearInputBuffer() {
+            while(Console.KeyAvailable) { Console.ReadKey(true); } // Clear the input buffer by reading all available keys
         }
 
         /// <summary>
@@ -484,7 +491,7 @@ namespace Triamec.Tam.Samples {
         ChoseAxis,
         SetDistance,
         AxisDisabled,
-        AxisEnabled
+        AxisEnabled, 
     }
 
     /// <summary>
