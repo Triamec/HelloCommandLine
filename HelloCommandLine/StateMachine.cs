@@ -1,5 +1,6 @@
 ﻿// Copyright © 2025 Triamec Motion AG
 
+// TODO review ns: Remove unused using statements
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Triamec.Tam.Samples {
         private readonly Dictionary<State, Action> _stateActions;
         private bool _disposed = false; // To detect redundant calls
 
+        //TODO review ns: Decide whether to use the private keyword or not. If you use it, use it consistently.
         TamTopology? _topology;
         TamSystem? _system;
         TamStation? _station;
@@ -29,16 +31,18 @@ namespace Triamec.Tam.Samples {
         bool _isSimulation;
         float _velocityMaximum;
         string? _unit;
-        float _speed = 100f; // Default speed value for the axis movement
+        float _speed = 100f; // Default speed value for the axis movement TODO review ns more concise naming e.g. _speedPercentage
         double _distance = 0.5 * Math.PI; /// The distance to move when send a moving command.
 
         /// <summary>
         /// The configuration file to seed the simulation.
         /// </summary>
+        /// TODO review ns: Remove summary and add as inline comment like above
         const string _offlineConfigurationPath = "HelloWorld.TAMcfg";
 
         public StateMachine() {
             // Initialize the state actions dictionary with the corresponding methods for each state.
+            // TODO review ns: Consider using a switch expression instead of a dictionary.
             _stateActions = new Dictionary<State, Action> {
                 { State.AddTopology, ExecuteState_AddTopology },
                 { State.ChoseStation, ExecuteState_ChoseStation },
@@ -136,7 +140,7 @@ namespace Triamec.Tam.Samples {
             // The AsDepthFirst extension method performs a tree search an returns all instances of type TamStation.
             _stations = _system.AsDepthFirst<TamStation>().ToArray();
 
-            if (_stations == null || _stations.Length == 0) {
+            if (_stations == null || _stations.Length == 0) { // TODO review ns: Consider using _stations.IsNullOrEmpty()
                 Console.WriteLine("\nNo station found. System is restarting...\n");
                 _state = State.AddTopology;
                 return;
@@ -153,7 +157,7 @@ namespace Triamec.Tam.Samples {
                 // Check if input is valid and overwrite _stations[0] with the selected station
                 int stationIndex = GetAndCheckNumberInput(_stations.Length, "Invalid input. Please enter a number of a station.");
                 _station = _stations[stationIndex];
-            } else if (_stations.Length == 1) _station = _stations[0];
+            } else if (_stations.Length == 1) _station = _stations[0]; // TODO review ns: Have one else in the if else statement (a bit clearer what is going to happen than)
 
             if (_station != null) { _state = State.ChoseAxis; } else {
                 _state = State.AddTopology;
@@ -176,7 +180,7 @@ namespace Triamec.Tam.Samples {
             // The AsDepthFirstLeaves extension method performs a tree search an returns all instances of type TamAxis.
             _axes = _station.AsDepthFirst<TamAxis>().ToArray();
 
-            if (_axes == null || _axes.Length == 0) {
+            if (_axes == null || _axes.Length == 0) { //TODO review ns: Consider using _axes.IsNullOrEmpty()
                 Console.WriteLine("\nNo axis found. Check the drive configurations. System is restarting...\n");
                 _state = State.AddTopology;
                 return;
@@ -206,7 +210,7 @@ namespace Triamec.Tam.Samples {
             _axis.ControlSystemTreatment.Override(enabled: true);
 
             // Simulation always starts up with LinkNotReady error, which we acknowledge.
-            if (_isSimulation) _axis.Drive.ResetFault();
+            if (_isSimulation) _axis.Drive.ResetFault(); // TODO review ns: Consider moving this call to AddTopology, so that it is only called once when the topology is created.
 
             //// Get the register layout of the axis
             //// and cast it to the RLID-specific register layout.
@@ -222,7 +226,7 @@ namespace Triamec.Tam.Samples {
             _state = State.AxisDisabled;
 
             // Prepare for the use of the WaitForSuccess method.
-            if(_observerRegistered == false) {
+            if(_observerRegistered == false) { // TODO review ns: Why is a flag used? Check the documentation for the Drive.AddStateObserver method to get more information about the observer lifetime and count.
                 _axis.Drive.AddStateObserver(this);
                 _observerRegistered = true;
             }
@@ -411,7 +415,7 @@ namespace Triamec.Tam.Samples {
         /// <param name="maxNumber"> The exclusive upper limit for valid input (0 to maxNumber) </param>
         /// <param name="errMessage"> The error message displayed when the input is invalid.</param>
         /// <returns>The valid number entered by the user</returns>
-        private int GetAndCheckNumberInput(int maxNumber, string errMessage) {
+        private int GetAndCheckNumberInput(int maxNumber, string errMessage) { // TODO review ns: Consider using errMessage as an optional parameter with a default value.
             do {
                 string? stringInput = Console.ReadLine()?.Trim();
                 if (int.TryParse(stringInput, out int numberInput) && numberInput >= 0 && numberInput <= maxNumber) {
