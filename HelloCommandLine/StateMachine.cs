@@ -35,6 +35,7 @@ namespace Triamec.Tam.Samples {
         /// his method blocks and runs indefinitely until the process is terminated.
         /// </summary>
         public void StateHandler() {
+            // TODO review ns: Consider removing ExecuteState_ prefix from the methods, most methods are already phrased as something to execute (except AxisDisabled and AxisEnabled which are probably states?). This is a matter of taste, though.
             while (true) {
                 switch (_state) {
                     case State.AddTopology:
@@ -57,6 +58,7 @@ namespace Triamec.Tam.Samples {
                         break;
                     default:
                         // If the state is not recognized, reset to the initial state.
+                        // TODO review ns: This is a fallback mechanism for an actual implementation error. It might be better to throw an NotImplementedException here (since you know your State enum).
                         Console.WriteLine($"State {_state} not found.");
                         _state = State.AddTopology;
                         break;
@@ -80,13 +82,14 @@ namespace Triamec.Tam.Samples {
 
             if (GetAndCheckNumberInput(1, "Please enter a valid number (0 or 1)") == 0) {
                 _isSimulation = true;
-            } else { _isSimulation = false; }
+            } else {
+                _isSimulation = false;
+            }
 
             // The Tam System is added.
             if (_isSimulation == true) {
 
                 Console.WriteLine("\nSimulated Topology is being created. Please wait... ");
-
 
                 string executablePath = AppDomain.CurrentDomain.BaseDirectory;
                 using (var deserializer = new Deserializer()) {
@@ -118,7 +121,6 @@ namespace Triamec.Tam.Samples {
             if (_system != null) { _state = State.ChoseStation; } else {
                 Console.WriteLine("No system found. Try again...");
             }
-
         }
 
         /// <summary>
@@ -126,7 +128,7 @@ namespace Triamec.Tam.Samples {
         /// Updates the state machine to <c>ChoseAxis</c> if at least one station is connected; otherwise, restarts the topology setup.
         /// </summary>
         void ExecuteState_ChoseStation() {
-            TamStation[]? _stations;
+            TamStation[]? _stations; // TODO review ns: Either make this a field or remove the underscore (the underscore is reserved for fields). 
 
             // Find all connected stations
             // The AsDepthFirst extension method performs a tree search an returns all instances of type TamStation.
@@ -153,7 +155,7 @@ namespace Triamec.Tam.Samples {
                 _station = _stations[0];
             }
 
-            
+
             _device = _station?.AsDepthFirst<TamDevice>().FirstOrDefault(); // From this point on, we work with devices (TamDevice) instead of stations (TamStation)
 
             if (_device != null) {
@@ -174,7 +176,7 @@ namespace Triamec.Tam.Samples {
         /// Advances the state machine to <c>AxisDisabled</c> if an axis is connected; otherwise, restarts the topology setup.
         /// </summary>
         void ExecuteState_ChoseAxis() {
-            TamAxis[]? _axes;
+            TamAxis[]? _axes; // TODO review ns: Same story as _stations, either make this a field or remove the underscore (the underscore is reserved for fields).
 
             // Find all axes of the selected station (drive)
             // The AsDepthFirstLeaves extension method performs a tree search an returns all instances of type TamAxis.
@@ -238,7 +240,7 @@ namespace Triamec.Tam.Samples {
             Console.WriteLine("(3): Restart System");
 
             int index = GetAndCheckNumberInput(3, "Invalid input. Please enter the number of the corresponding command");
-            Commands command = (Commands)index + 2;
+            Commands command = (Commands)index + 2; // TODO review ns: Make proper switch-case (?), this breaks very easily and silently if Commands is changed by order/elements/number assignements.
             ExecuteCommand(command, true);
         }
 
@@ -397,7 +399,7 @@ namespace Triamec.Tam.Samples {
 
         void ShowPosition() {
             var register = (Axis)_axis!.Register;
-            var start = DateTime.UtcNow;
+            var start = DateTime.UtcNow; // TODO review ns: This is not used, so it can be removed?
 
             // Read the current position of the axis.
             var position = register.Signals.PositionController.MasterPosition.Read();
@@ -472,6 +474,8 @@ namespace Triamec.Tam.Samples {
     /// <item><term>AxisEnabled</term><description>Axis is enabled; user can execute different commands.</description></item>
     /// </list>
     /// </summary>
+    /// // TODO review ns: I personally find the states AxisDiabled and AxisEnabled confusing, as it is more if a system state than a program flow. It bothers me that I enter AxisDisabled even if my selected axis is already enabled.
+    // TODO review ns: (continued) My suggestion would be to make a combined state for the two where you check if the axis really is enabled or not.
     public enum State {
         AddTopology,
         ChoseStation,
