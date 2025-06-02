@@ -3,7 +3,7 @@
 namespace Triamec.Tam.Samples {
     internal class Program {
 
-        static StateMachine app;
+        static StateMachine? app;
         static void Main(string[] args) {
 
             app = new StateMachine();
@@ -17,12 +17,10 @@ namespace Triamec.Tam.Samples {
             catch(TamException ex) {
                 Console.WriteLine($"\nAn error occurred: {ex.Message}");
                 Console.WriteLine($"\nPlease check the drive's configurations, close the application and try again or start a simulation.");
-            } finally {
-                app.Dispose();
             }
         }
 
-        static void OnExit(object sender, EventArgs e) {
+        static void OnExit(object? sender, EventArgs e) {
             Console.WriteLine("Disposing resources...");
             app?.Dispose();
         }
