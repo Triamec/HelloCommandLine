@@ -36,8 +36,7 @@ This application is a command-line tool that guides the user through the setup a
 1.	AddTopology: Initializes the system topology, either in simulation or with real hardware.
 2.	ChoseStation: Detects all available stations and prompts the user to select one.
 3.	ChoseAxis: Lists all axes of the selected station and lets the user choose an axis to control.
-4.	SetDistance: User defines the distance applied to each move on the selected axis
 5.	ReceiveCommands: User can execute various commands depending on whether the axis is enabled or disabled:
-    - Enable Axis, Disable Axis, Change Speed, Change Axis, Restart System, Move Left and Move Right
+    - Enable Axis, Disable Axis, Change Distance, Change Speed, Change Axis, Restart System, Move Left and Move Right
 
 All user interactions and state transitions are managed by a state machine, ensuring a clear and guided workflow for configuring and controlling the TAM system.
