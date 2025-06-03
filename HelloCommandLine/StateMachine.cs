@@ -81,7 +81,7 @@ namespace Triamec.Tam.Samples {
             }
 
             // The Tam System is added.
-            if (_isSimulation == true) {
+            if (_isSimulation) {
 
                 Console.WriteLine("\nSimulated Topology is being created. Please wait... ");
 
@@ -103,7 +103,7 @@ namespace Triamec.Tam.Samples {
                 Console.WriteLine("\nAdd Topology. Please wait...");
 
                 // Add the local TAM system on this PC to the topology
-                _system = _topology.AddLocalSystem();
+                _system = _topology.AddLocalSystem(DataLinkLayers.All);
 
                 // Boot the Tria-Link so that it learns about connected stations
                 _system.Identify();
@@ -419,7 +419,7 @@ namespace Triamec.Tam.Samples {
         /// <param name="maxNumber"> The exclusive upper limit for valid input (0 to maxNumber) </param>
         /// <param name="errMessage"> The error message displayed when the input is invalid.</param>
         /// <returns>The valid number entered by the user</returns>
-        int GetAndCheckNumberInput(int maxNumber, string errMessage = "Invalid Input.") {
+        static int GetAndCheckNumberInput(int maxNumber, string errMessage = "Invalid Input.") {
             do {
                 ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
                 string? stringInput = Console.ReadLine()?.Trim();
@@ -431,7 +431,7 @@ namespace Triamec.Tam.Samples {
             } while (true);
         }
 
-        void ClearInputBuffer() {
+        static void ClearInputBuffer() {
             while (Console.KeyAvailable) { Console.ReadKey(true); } // Clear the input buffer by reading all available keys
         }
 
