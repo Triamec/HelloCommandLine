@@ -1,6 +1,7 @@
 ﻿// Copyright © 2025 Triamec Motion AG
 
 using LinqToDB.Common;
+using QuikGraph.Algorithms.Search;
 using Triamec.Tam.Configuration;
 using Triamec.Tam.Registers;
 using Triamec.TriaLink;
@@ -25,7 +26,7 @@ namespace Triamec.Tam.Samples {
         float _velocityMaximum;
         string? _unit;
         float _speedPercentage = 100f; // Default percentage of speed for the axis movement
-        double _distance = 0.5 * Math.PI; // The distance to move when send a moving command.
+        double _distance = -1;         // The distance to move when send a moving command.
 
         const string _offlineConfigurationPath = "HelloWorld.TAMcfg"; // The configuration file to seed the simulation.
 
@@ -46,10 +47,6 @@ namespace Triamec.Tam.Samples {
                         break;
                     case State.ChoseAxis:
                         ChoseAxis();
-                        break;
-                    case State.SetDistance:
-                        SetDistance();
-                        _state = State.ReceiveCommands;
                         break;
                     case State.ReceiveCommands:
                         ReceiveCommands();
@@ -226,26 +223,33 @@ namespace Triamec.Tam.Samples {
         /// reads and validates the user's input, and executes the selected command.
         /// </summary>
         void ReceiveCommands() {
+
+            ChangeDistance(false);
+
             var register = (Axis)_axis!.Register;
             if (register.Signals.General.AxisState.Read() <= AxisState.Disabled) {
                 Console.WriteLine("\nPlease enter a command: ");
                 Console.WriteLine("(0): Enable Axis (recommended)");
-                Console.WriteLine("(1): Change Speed");
-                Console.WriteLine("(2): Change Axis");
-                Console.WriteLine("(3): Restart System");
+                Console.WriteLine($"(1): Change Distance ({_distance:F4} {_unit})");
+                Console.WriteLine($"(2): Change Speed ({_speedPercentage} %)");
+                Console.WriteLine($"(3): Change Axis ({_axis.Name})");
+                Console.WriteLine("(4): Restart System");
 
                 int index = GetAndCheckNumberInput(3, "Invalid input. Please enter the number of the corresponding command");
                 switch (index) {
                     case 0:
                         ExecuteCommand(Commands.EnableAxis);
                         break;
-                    case 1:
-                        ExecuteCommand(Commands.ChangeSpeed);
+                    case 1: 
+                        ExecuteCommand(Commands.ChangeDistance);
                         break;
                     case 2:
-                        ExecuteCommand(Commands.ChangeAxis);
+                        ExecuteCommand(Commands.ChangeSpeed);
                         break;
                     case 3:
+                        ExecuteCommand(Commands.ChangeAxis);
+                        break;
+                    case 4:
                         ExecuteCommand(Commands.RestartSystem);
                         break;
                 }
@@ -254,9 +258,10 @@ namespace Triamec.Tam.Samples {
                 Console.WriteLine($"(0): Move left ({_distance:F4} {_unit})");
                 Console.WriteLine($"(1): Move right({_distance:F4} {_unit})");
                 Console.WriteLine("(2): Disable Axis");
-                Console.WriteLine("(3): Change Speed");
-                Console.WriteLine("(4): Change Axis");
-                Console.WriteLine("(5): Restart System");
+                Console.WriteLine($"(3): Change Distance ({_distance:F4} {_unit})");
+                Console.WriteLine($"(4): Change Speed ({_speedPercentage} %)");
+                Console.WriteLine($"(5): Change Axis ({_axis.Name})");
+                Console.WriteLine("(6): Restart System");
 
                 int index = GetAndCheckNumberInput(5, "Invalid input. Please enter the number of the corresponding command");
 
@@ -270,39 +275,23 @@ namespace Triamec.Tam.Samples {
                     case 2:
                         ExecuteCommand(Commands.DisableAxis);
                         break;
-                    case 3:
-                        ExecuteCommand(Commands.ChangeSpeed);
+                    case 3: 
+                        ExecuteCommand(Commands.ChangeDistance);
                         break;
                     case 4:
-                        ExecuteCommand(Commands.ChangeAxis);
+                        ExecuteCommand(Commands.ChangeSpeed);
                         break;
                     case 5:
+                        ExecuteCommand(Commands.ChangeAxis);
+                        break;
+                    case 6:
                         ExecuteCommand(Commands.RestartSystem);
                         break;
                 }
             }
         }
 
-        /// <summary>
-        /// If not in simulation mode, prompts the user to enter a movement distance, validates the input, and updates the internal distance value.
-        /// </summary>
-        void SetDistance() {
-            // User needs to define a distance to move when sending a moving command, if application is not in simulation mode.
 
-            Console.WriteLine("\nPlease enter a distance to move the axis, when sending a corresponding command.");
-            Console.WriteLine("The value must be in the unit of the axis, which is: " + _unit);
-
-            // Get and validate input and distance
-            do {
-                ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
-                string? stringInput = Console.ReadLine()?.Trim();
-                if (double.TryParse(stringInput, out _distance)) {
-                    break;
-                } else {
-                    Console.WriteLine("Invalid input. Please enter a number (double).");
-                }
-            } while (true);
-        }
 
         /// <summary>
         /// Executes the specified command for the axis.
@@ -325,7 +314,7 @@ namespace Triamec.Tam.Samples {
                     case Commands.EnableAxis:
                         EnableAxis();
                         ShowPosition();
-                        _state = State.SetDistance;
+                        _state = State.ReceiveCommands;
                         break;
                     case Commands.DisableAxis:
                         DisableAxis();
@@ -341,6 +330,9 @@ namespace Triamec.Tam.Samples {
                     case Commands.MoveRight:
                         MoveAxis(1);
                         ShowPosition();
+                        break;
+                    case Commands.ChangeDistance:
+                        ChangeDistance(true);
                         break;
                 }
             } catch (TamException e) {
@@ -402,6 +394,29 @@ namespace Triamec.Tam.Samples {
             } while (true);
         }
 
+        /// <summary>
+        /// If not in simulation mode, prompts the user to enter a movement distance, validates the input, and updates the internal distance value.
+        /// </summary>
+        void ChangeDistance(bool requested) {
+            // User needs to define a distance to move when sending a moving command, if application is not in simulation mode.
+            // If distance is already set (greater than 0), no need to ask again
+            if (_distance >= 0 && requested == false) { return; }
+
+            Console.WriteLine("\nPlease enter a distance to move the axis, when sending a corresponding command.");
+            Console.WriteLine("The value must be in the unit of the axis, which is: " + _unit);
+
+            // Get and validate input and distance
+            do {
+                ClearInputBuffer(); // Clear the input buffer to avoid reading leftover characters from previous inputs
+                string? stringInput = Console.ReadLine()?.Trim();
+                if (double.TryParse(stringInput, out _distance) && _distance >= 0) {
+                    break;
+                } else {
+                    Console.WriteLine("Invalid input. Please enter a positive number (double).");
+                }
+            } while (true);
+        }
+
         void ShowPosition() {
             var register = (Axis)_axis!.Register;
 
@@ -452,6 +467,7 @@ namespace Triamec.Tam.Samples {
             // Reset parameters
             _distance = 0.5 * Math.PI;
             _speedPercentage = 50f;
+            _distance = -1;
 
             if (_axis != null) {
                 try {
@@ -491,6 +507,7 @@ namespace Triamec.Tam.Samples {
         EnableAxis,
         DisableAxis,
         ChangeSpeed,
+        ChangeDistance,
         ChangeAxis,
         RestartSystem
     }
