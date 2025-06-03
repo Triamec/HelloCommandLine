@@ -32,7 +32,7 @@ For the **Offline** mode, simply clone the repository, open the solution and hit
 
 ## Operate the *HelloCommandLine* Application
 
-This application is a command-line tool that guides the user through the setup and control of a TAM (Triamec ADvanced Motion) system using a state machine. The user can choose between running the application in simulation mode or with connected hardware. The application walks the user through the following steps:
+This application is a command-line tool that guides the user through the setup and control of a TAM (Triamec Advanced Motion) system using a state machine. The user can choose between running the application in simulation mode or with connected hardware. The application walks the user through the following steps:
 1.	AddTopology: Initializes the system topology, either in simulation or with real hardware.
 2.	ChoseStation: Detects all available stations and prompts the user to select one.
 3.	ChoseAxis: Lists all axes of the selected station and lets the user choose an axis to control.
