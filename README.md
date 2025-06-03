@@ -26,9 +26,9 @@ For the **Offline** mode, simply clone the repository, open the solution and hit
 
 **Connected** mode:
 
-1. Make sure the *TAM System Explorer* is not connected to the drive, or simply close it.
-2. The Hardware needs to be configured correctly and needs to be connected.
-3. Open the solution and hit run.
+1. The Hardware needs to be configured correctly and needs to be connected.
+2. Make sure the *TAM System Explorer* is not connected to the drive, or simply close it.
+4. Open the solution and hit run.
 
 ## Operate the *HelloCommandLine* Application
 
