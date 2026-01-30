@@ -185,7 +185,7 @@ namespace Triamec.Tam.Samples {
             }
 
             // Check if input is valid
-            int numberInput = GetAndCheckNumberInput(axes.Length, "Invalid input. Please enter a number of an axis.");
+            int numberInput = GetAndCheckNumberInput(axes.Length - 1, "Invalid input. Please enter a number of an axis.");
 
             // Connect to the selected axis
             _axis = axes[numberInput];
@@ -234,7 +234,7 @@ namespace Triamec.Tam.Samples {
                 Console.WriteLine($"(3): Change Axis ({_axis.Name})");
                 Console.WriteLine("(4): Restart System");
 
-                int index = GetAndCheckNumberInput(3, "Invalid input. Please enter the number of the corresponding command");
+                int index = GetAndCheckNumberInput(4, "Invalid input. Please enter the number of the corresponding command");
                 switch (index) {
                     case 0:
                         ExecuteCommand(Commands.EnableAxis);
@@ -262,7 +262,7 @@ namespace Triamec.Tam.Samples {
                 Console.WriteLine($"(5): Change Axis ({_axis.Name})");
                 Console.WriteLine("(6): Restart System");
 
-                int index = GetAndCheckNumberInput(5, "Invalid input. Please enter the number of the corresponding command");
+                int index = GetAndCheckNumberInput(6, "Invalid input. Please enter the number of the corresponding command");
 
                 switch (index) {
                     case 0:
