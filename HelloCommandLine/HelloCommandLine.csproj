@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Triamec.Tam.Simulation" Version="7.4.0" />
-    <PackageReference Include="Triamec.Tam.TriaLink" Version="7.23.0" />
+    <PackageReference Include="Triamec.Tam.Simulation" Version="7.4.2" />
+    <PackageReference Include="Triamec.Tam.TriaLink" Version="7.23.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,6 @@
 ﻿// Copyright © 2025 Triamec Motion AG
 
 using LinqToDB.Common;
-using QuikGraph.Algorithms.Search;
 using Triamec.Tam.Configuration;
 using Triamec.Tam.Registers;
 using Triamec.TriaLink;
@@ -19,7 +18,7 @@ namespace Triamec.Tam.Samples {
         TamTopology? _topology;
         TamSystem? _system;
         TamStation? _station;
-        TamDevice? _device;
+        ITamDevice? _device;
         TamAxis? _axis;
 
         bool _isSimulation;
@@ -147,7 +146,7 @@ namespace Triamec.Tam.Samples {
             }
 
 
-            _device = _station?.AsDepthFirst<TamDevice>().FirstOrDefault(); // From this point on, we work with devices (TamDevice) instead of stations (TamStation)
+            _device = _station?.AsDepthFirst<ITamDevice>().FirstOrDefault(); // From this point on, we work with devices (TamDevice) instead of stations (TamStation)
 
             if (_device != null) {
                 _device.AddStateObserver(this); // Add a state observer to the device, if it exists. Is for example needed for axis operations such as .WaitForSuccess()
@@ -186,7 +185,7 @@ namespace Triamec.Tam.Samples {
             }
 
             // Check if input is valid
-            int numberInput = GetAndCheckNumberInput(axes.Length, "Invalid input. Please enter a number of an axis.");
+            int numberInput = GetAndCheckNumberInput(axes.Length - 1, "Invalid input. Please enter a number of an axis.");
 
             // Connect to the selected axis
             _axis = axes[numberInput];
@@ -240,7 +239,7 @@ namespace Triamec.Tam.Samples {
                     case 0:
                         ExecuteCommand(Commands.EnableAxis);
                         break;
-                    case 1: 
+                    case 1:
                         ExecuteCommand(Commands.ChangeDistance);
                         break;
                     case 2:
@@ -275,7 +274,7 @@ namespace Triamec.Tam.Samples {
                     case 2:
                         ExecuteCommand(Commands.DisableAxis);
                         break;
-                    case 3: 
+                    case 3:
                         ExecuteCommand(Commands.ChangeDistance);
                         break;
                     case 4:
